@@ -11,5 +11,4 @@ router.delete('/:id', companyController.deleteCompany);
 
 // column order
 router.post('/column-order', companyController.updateColumnOrder);
-
 module.exports = router;

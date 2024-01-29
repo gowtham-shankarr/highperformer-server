@@ -273,15 +273,30 @@ exports.deleteCompany = (req, res) => {
 };
 
 
+// Assuming 'db' is your database connection object and it's already set up
 exports.updateColumnOrder = (req, res) => {
+    // console.log('Received column order:', req.body.columnOrder);
+    console.log('Request body:', req.body);
     const newOrder = req.body.columnOrder;
-    const query = 'UPDATE Configuration SET setting_value = ? WHERE setting_name = "column_order"';
-
-    db.query(query, [JSON.stringify(newOrder)], (error, results) => {
-        if (error) {
-            console.error('Error updating column order:', error);
-            return res.status(500).json({ error });
+    db.query('SELECT * FROM Configuration WHERE setting_name = "column_order"', (selectError, selectResults) => {
+        if (selectError) {
+            return res.status(500).json({ error: selectError.message });
         }
-        res.json({ message: 'Column order updated' });
+        let query;
+        if (selectResults.length === 0) {
+            // Insert new setting if it doesn't exist
+            query = 'INSERT INTO Configuration (setting_name, setting_value) VALUES ("column_order", ?)';
+        } else {
+            // Update existing setting
+            query = 'UPDATE Configuration SET setting_value = ? WHERE setting_name = "column_order"';
+        }
+
+        db.query(query, [JSON.stringify(newOrder)], (updateError, updateResults) => {
+            if (updateError) {
+                return res.status(500).json({ error: updateError.message });
+            }
+            res.json({ message: 'Column order updated', results: updateResults });
+        });
     });
 };
+

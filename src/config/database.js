@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
     host: process.env.RDS_HOST,
@@ -8,4 +8,4 @@ const pool = mysql.createPool({
     port: process.env.RDS_PORT
 });
 
-module.exports = pool.promise();
+module.exports = pool;

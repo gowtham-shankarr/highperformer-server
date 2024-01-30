@@ -116,8 +116,8 @@ exports.listCompanies = async (req, res) => {
             twitter_follower: company.twitter_follower,
             created: company.created,
         }));
-        res.json({ companies: orderedResults.length > 0 ? orderedResults : response });
-        // res.json({ companies: response });
+        // res.json({ companies: orderedResults.length > 0 ? orderedResults : response });
+        res.json({ companies: response });
         // res.json({ companies: orderedResults });
     } catch (error) {
         console.error('Error in listCompanies:', error);

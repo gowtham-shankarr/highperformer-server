@@ -21,7 +21,9 @@ exports.listCompanies = async (req, res) => {
         let query = 'SELECT * FROM Companies';
         let conditions = [];
         let queryParams = [];
-        const validColumns = ['id', 'company_name', 'description', 'linkedin', 'domains', 'twitter', 'categories', 'twitter_follower'];
+        const validColumns = ['id', 'company_name', 'description', 'linkedin', 'domains', 'twitter', 'categories', 'twitter_follower', 'created'];
+
+        
 
         const filters = req.query.filters ? JSON.parse(req.query.filters) : [];
         filters.forEach(filter => {
@@ -89,7 +91,6 @@ exports.listCompanies = async (req, res) => {
             query += ' ORDER BY ' + orderConditions.join(', ');
         }
 
-        console.log("Final SQL Query:", query);
 
         const [companies] = await db.query(query, queryParams);
 
@@ -103,7 +104,21 @@ exports.listCompanies = async (req, res) => {
             }
             return company; 
         });
-        res.json({ companies: orderedResults });
+
+        const response = companies.map(company => ({
+            id: company.id,
+            company_name: company.company_name,
+            description: company.description,
+            linkedin: company.linkedin,
+            domains: company.domains,
+            twitter: company.twitter,
+            categories: company.categories,
+            twitter_follower: company.twitter_follower,
+            created: company.created,
+        }));
+        res.json({ companies: orderedResults.length > 0 ? orderedResults : response });
+        // res.json({ companies: response });
+        // res.json({ companies: orderedResults });
     } catch (error) {
         console.error('Error in listCompanies:', error);
         res.status(500).json({ error: 'Error retrieving data' });
@@ -126,22 +141,19 @@ exports.getCompany = (req, res) => {
     });
 };
 
-exports.updateCompany = (req, res) => {
+exports.updateCompany = async (req, res) => {
     const companyId = req.params.id;
     const { company_name, description, linkedin, domains, twitter, categories, twitter_follower } = req.body;
     const query = 'UPDATE Companies SET company_name = ?, description = ?, linkedin = ?, domains = ?, twitter = ?, categories = ?, twitter_follower = ? WHERE id = ?';
-    console.log('getCompany called with ID:', req.params.id);
-
-    db.query(query, [company_name, description, linkedin, domains, twitter, categories, twitter_follower, companyId], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ message: 'Company not found' });
-        }
+    try {
+        await db.query(query, [company_name, description, linkedin, domains, twitter, categories, twitter_follower, companyId]);
         res.json({ message: 'Company updated' });
-    });
+    } catch (error) {
+        console.error("Error in updateCompany:", error);
+        res.status(500).json({ error: error.message });
+    }
 };
+
 
 exports.deleteCompany = (req, res) => {
     const companyId = req.params.id;
